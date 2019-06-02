@@ -41,6 +41,7 @@ class ParseXml
   private
 
   def parse
+    # puts "PARSING tokens = #{@tokens.inspect}"
     children = parse_tags
     if children.one?
       children.first
@@ -58,6 +59,7 @@ class ParseXml
   end
 
   private def parse_tag
+    # puts "PARSING TAG index=#{@index}"
     open do
       opt_whitespace
       expect '<'
@@ -72,7 +74,9 @@ class ParseXml
       expect '<'
       opt_whitespace
       expect '/'
+      opt_whitespace
       expect name
+      opt_whitespace
       expect '>'
 
       Tag.new name: name, children: children
@@ -81,10 +85,13 @@ class ParseXml
 
   def open
     index = @index
-    catch :fail do
+    # puts "OPEN index=#{index}"
+    reason = catch :fail do
       result = yield
+      # puts "OPEN SUCCEEDED #{index} => #{@index}"
       return result
     end
+    # puts "OPEN FAILED #{index} => #{@index} (#{reason})"
     @index = index
     nil
   end
@@ -101,9 +108,9 @@ class ParseXml
     actual = token()
     case expected
     when String
-      throw :fail if actual != expected
+      throw :fail, "#{actual.inspect} != #{expected.inspect}" if actual != expected
     when Regexp
-      throw :fail if actual !~ expected
+      throw :fail, "#{actual.inspect} !~ #{expected.inspect}" if actual !~ expected
     else
       raise "fixme: #{token.inspect}"
     end
