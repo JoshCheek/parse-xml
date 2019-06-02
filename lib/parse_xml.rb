@@ -45,7 +45,7 @@ class ParseXml
     if children.one?
       children.first
     else
-      raise 'root has multiple things'
+      Tag.new name: ':root', children: children
     end
   end
 
