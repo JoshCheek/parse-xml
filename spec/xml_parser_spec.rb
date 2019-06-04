@@ -6,8 +6,8 @@ RSpec.describe 'ParseXml' do
     expect(actual).to eq expected
   end
 
-  def tag(name, *children)
-    ParseXml::Tag.new(name: name, children: children)
+  def tag(name, *children, **attributes)
+    ParseXml::Tag.new(name: name, children: children, attributes: attributes)
   end
 
   it 'parses <$WORD></$WORD> into a tag for $WORD' do
@@ -26,4 +26,19 @@ RSpec.describe 'ParseXml' do
   it 'ignores whitespace between the tagname and the brackets' do
     parses! '< a >< / a >', tag('a')
   end
+
+  it 'parses attributes whose values are double quoted' do
+    parses! '<a b="c" de="fg" empty=""></a>', tag('a', b: "c", de: "fg", empty: "")
+  end
+
+  it 'parses attributes whose values are single quoted' do
+    parses! "<a b='c' de='fg' empty=''></a>", tag('a', b: "c", de: "fg", empty: "")
+  end
+
+  it 'parses attributes whose values aren\'t quoted' do
+    skip 'got a meeting I have to go to'
+    parses! "<a b=c de=fg></a>", tag('a', b: "c", de: "fg")
+  end
+
+  it 'closes off open tags when an parent tag is closed'
 end

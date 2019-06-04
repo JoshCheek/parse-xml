@@ -2,15 +2,15 @@ require 'strscan'
 
 class ParseXml
   class Tag
-    def initialize(name:, children:)
+    def initialize(name:, children:, attributes:)
       @name = name
       @children = children
     end
 
-    attr_reader :name, :children
+    attr_reader :name, :children, :attributes
 
     def ==(tag)
-      name == tag.name && children == tag.children
+      name == tag.name && children == tag.children && attributes == tag.attributes
     rescue NoMethodError
       return false
     end
@@ -46,7 +46,7 @@ class ParseXml
     if children.one?
       children.first
     else
-      Tag.new name: ':root', children: children
+      Tag.new name: ':root', children: children, attributes: {}
     end
   end
 
@@ -65,6 +65,7 @@ class ParseXml
       expect '<'
       opt_whitespace
       name = expect /\A\w+\z/
+      attrs = parse_attrs
       opt_whitespace
       expect '>'
 
@@ -79,8 +80,30 @@ class ParseXml
       opt_whitespace
       expect '>'
 
-      Tag.new name: name, children: children
+      Tag.new name: name, children: children, attributes: attrs
     end
+  end
+
+  private def parse_attrs
+    attributes = {}
+    loop do
+      pair = open do
+        opt_whitespace
+        name = expect /\A[^=]+\z/
+        expect '='
+        quote = expect /\A['"]\z/
+        if token == quote
+          value = ""
+        else
+          value = expect /\A[^"]*\z/
+        end
+        expect quote
+        [name, value]
+      end
+      break unless pair
+      attributes[pair[0]] = pair[1]
+    end
+    attributes
   end
 
   def open
